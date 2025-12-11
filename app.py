@@ -19,7 +19,19 @@ def carregar_dados():
 
 dados = carregar_dados()
 
-# --- 3. TÍTULO E SIDEBAR (Dados do Evento) ---
+# --- 3. CALLBACKS (O Segredo da Atualização) ---
+def selecionar_todos(chave_checkbox, chave_multiselect, opcoes):
+    """
+    Função chamada IMEDIATAMENTE quando o usuário clica no checkbox.
+    Ela força a atualização da lista no banco de memória do Streamlit.
+    """
+    # Verifica se o checkbox está marcado
+    if st.session_state[chave_checkbox]:
+        st.session_state[chave_multiselect] = opcoes # Seleciona tudo
+    else:
+        st.session_state[chave_multiselect] = [] # Limpa tudo
+
+# --- 4. INTERFACE ---
 st.title("🍽️ Gerador de Orçamento - Buffet")
 st.markdown("---")
 
@@ -28,94 +40,81 @@ with st.sidebar:
     cliente = st.text_input("Nome do Cliente")
     data_evento = st.date_input("Data da Festa", value=date.today())
     local = st.text_input("Local da Festa")
-    
-    # Validação simples para evitar erro de cálculo
     qtd_convidados = st.number_input("Qtd. Convidados", min_value=10, step=5, value=100)
-    
     tipo_festa = st.selectbox("Tipo de Recepção", ["Tradicional", "Infantil", "Boteco Mineiro", "Coquetel"])
-    st.info(f"Modo selecionado: **{tipo_festa}**")
 
-# --- 4. FUNÇÃO MÁGICA: RENDERIZAÇÃO RECURSIVA ---
-# Essa função resolve o problema do seu JSON ter estruturas mistas (Listas vs Dicts)
+# --- 5. FUNÇÃO DE RENDERIZAÇÃO (COM CALLBACK) ---
 def renderizar_secao(titulo, conteudo, chave_pai):
-    """
-    Cria a interface visual dependendo se o conteúdo é uma Lista ou um Dicionário.
-    """
-    # Se for uma LISTA (Ex: Bebidas, Buffet Infantil) -> Cria um Multiselect simples
-    if isinstance(conteudo, list):
-        # Cria uma chave única para o streamlit não se perder
-        chave_widget = f"sel_{chave_pai}_{titulo}" 
-        return st.multiselect(f"Selecione: {titulo.capitalize()}", options=conteudo, key=chave_widget)
     
-    # Se for um DICIONÁRIO (Ex: Salgados -> Frios, Quentes) -> Cria Abas ou Expander
+    # CASO 1: LISTA
+    if isinstance(conteudo, list):
+        chave_multiselect = f"sel_{chave_pai}_{titulo}"
+        chave_checkbox = f"chk_{chave_widget_id(chave_pai, titulo)}" # Helper simples para ID único
+
+        c1, c2 = st.columns([3, 1])
+        with c1:
+            st.markdown(f"**{titulo.capitalize()}**")
+        with c2:
+            # CHECKBOX COM CALLBACK
+            # on_change: Chama a função antes de redesenhar a tela
+            # args: Passa os IDs e a lista de opções para a função saber o que fazer
+            st.checkbox(
+                "Selecionar Todos", 
+                key=chave_checkbox, 
+                on_change=selecionar_todos,
+                args=(chave_checkbox, chave_multiselect, conteudo)
+            )
+        
+        return st.multiselect(
+            f"Selecione {titulo}",
+            options=conteudo,
+            key=chave_multiselect, # O Callback vai injetar dados aqui
+            label_visibility="collapsed"
+        )
+    
+    # CASO 2: DICIONÁRIO (Recursão)
     elif isinstance(conteudo, dict):
         st.subheader(f"📂 {titulo.capitalize()}")
         selecoes_internas = {}
-        
-        # Cria abas para cada subcategoria (Frios, Quentes, etc.)
         abas = st.tabs([k.capitalize() for k in conteudo.keys()])
         
         for i, (sub_cat, itens) in enumerate(conteudo.items()):
             with abas[i]:
-                # Chama a lógica de lista para cada aba
-                chave_widget = f"sel_{chave_pai}_{titulo}_{sub_cat}"
-                selecoes_internas[sub_cat] = st.multiselect(
-                    f"Opções de {sub_cat}", 
-                    options=itens, 
-                    key=chave_widget
-                )
+                chave_nova = f"{chave_pai}_{titulo}"
+                selecoes_internas[sub_cat] = renderizar_secao(sub_cat, itens, chave_nova)
         return selecoes_internas
 
-# --- 5. O FORMULÁRIO PRINCIPAL ---
-# Usamos st.form para evitar recarregamento a cada clique (Performance)
-with st.form("form_orcamento"):
-    
-    st.write("### Monte o Cardápio")
-    
-    # Dicionário que vai guardar TUDO o que o usuário escolher
-    escolhas_usuario = {}
+# Helper para gerar IDs consistentes e evitar erro de Duplicate Key ID
+def chave_widget_id(pai, filho):
+    return f"{pai}_{filho}".replace(" ", "_").lower()
 
-    # ITERAÇÃO INTELIGENTE: Varre o JSON e cria os campos
-    if dados:
-        col1, col2 = st.columns(2)
-        
-        # Coluna 1: Comidas
-        with col1:
-            if "salgados" in dados:
-                escolhas_usuario["Salgados"] = renderizar_secao("Salgados", dados["salgados"], "main")
-            
-            st.divider()
-            
-            if "Prato Principal" in dados:
-                escolhas_usuario["Jantar"] = renderizar_secao("Prato Principal", dados["Prato Principal"], "main")
+# --- 6. MONTAGEM DO FORMULÁRIO ---
+st.write("### Monte o Cardápio")
+escolhas_usuario = {}
 
-        # Coluna 2: Bebidas e Outros
-        with col2:
-            if "bebidas" in dados:
-                escolhas_usuario["Bebidas"] = renderizar_secao("Bebidas", dados["bebidas"], "main")
-            
-            st.divider()
-            
-            if "Buffet Infantil" in dados:
-                # Exemplo de lógica condicional visual
-                if tipo_festa == "Infantil":
-                    st.success("Opções Infantis Habilitadas")
-                    escolhas_usuario["Infantil"] = renderizar_secao("Buffet Infantil", dados["Buffet Infantil"], "main")
-                else:
-                    st.caption("Menu Infantil oculto (Selecione 'Infantil' no menu lateral para ver)")
-
-    # --- RODAPÉ DO FORMULÁRIO ---
-    st.markdown("---")
-    observacoes = st.text_area("Observações Gerais / Cláusulas Extras")
+if dados:
+    col1, col2 = st.columns(2)
     
-    # Botão de Submissão
-    enviado = st.form_submit_button("💾 Gerar Prévia dos Dados")
+    with col1:
+        if "salgados" in dados:
+            escolhas_usuario["Salgados"] = renderizar_secao("Salgados", dados["salgados"], "main")
+        st.divider()
+        if "Prato Principal" in dados:
+            escolhas_usuario["Jantar"] = renderizar_secao("Prato Principal", dados["Prato Principal"], "main")
 
-# --- 6. VISUALIZAÇÃO DO OUTPUT (DEBUG) ---
-if enviado:
-    st.success("Dados capturados com sucesso!")
-    
-    # Cria o objeto final que será enviado para o Excel na Etapa 3
+    with col2:
+        if "bebidas" in dados:
+            escolhas_usuario["Bebidas"] = renderizar_secao("Bebidas", dados["bebidas"], "main")
+        st.divider()
+        if "Buffet Infantil" in dados:
+            if tipo_festa == "Infantil":
+                escolhas_usuario["Infantil"] = renderizar_secao("Buffet Infantil", dados["Buffet Infantil"], "main")
+
+# --- 7. BOTÃO FINAL ---
+st.markdown("---")
+observacoes = st.text_area("Observações Gerais")
+
+if st.button("💾 Gerar Prévia dos Dados", type="primary"):
     pacote_dados = {
         "metadados": {
             "cliente": cliente,
@@ -127,6 +126,6 @@ if enviado:
         "obs": observacoes
     }
     
-    # Mostra o JSON estruturado na tela para você conferir
-    with st.expander("🔍 Ver JSON que será enviado para o Excel"):
+    st.success("✅ Dados capturados!")
+    with st.expander("🔍 Ver JSON Final", expanded=True):
         st.json(pacote_dados)
