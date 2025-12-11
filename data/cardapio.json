@@ -87,6 +87,12 @@
         "Cerveja",
         "Bebida Destilada"
     ],
+    "Sobremesa": [
+        "Sorvete com Calda de Frutas Vermelhas",
+        "Pudim de Leite Condensado",
+        "Brownie com Sorvete de Creme",
+        "Salada de Frutas da Estação"
+    ],
     "mao_de_obra": [
         "Coordenadora",
         "Garçons e Garçonetes",
