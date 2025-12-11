@@ -3,37 +3,47 @@ import shutil
 import os
 from datetime import datetime
 
-# --- CONFIGURAÇÃO DE MAPEAMENTO (Tags do seu Excel) ---
-# TAGS FIXAS: Listas que têm lugar certo na planilha
+# --- 1. MAPEAMENTO DE LISTAS (Fixas) ---
 TAGS_FIXAS = {
-    # Caminho.no.JSON (Dote Notation)  :  Tag no Excel (Exatamente como você digitou)
+    # Salgados
     "Salgados.quentes": "{list_salg_qts}",
     "Salgados.frios": "{list_salg_fr}",
     "Salgados.assados": "{list_salg_ass}",
     "Salgados.petit_gourmet": "{list_salg_pg}",
+    
+    # Bebidas e Doces
     "Bebidas": "{list_drinks}",
     "Sobremesa": "{list_dessert}", 
-    "Buffet Infantil": "{list_infantil}"
-    # "Mão de Obra": "{list_hw}" (Se implementar futuramente)
+    
+    # Específicos
+    "Buffet Infantil": "{list_infantil}",
+    "Mão de Obra": "{list_hw}"  # <--- Adicionado Mão de Obra
 }
 
-# TAGS SIMPLES: Apenas substituição de texto
+# --- 2. MAPEAMENTO DE CAMPOS SIMPLES (Texto) ---
 TAGS_SIMPLES = {
     "cliente": "{name_client}",
     "data": "{date}",
     "convidados": "{guest_number}", 
-    "tipo": "{type_recp}", # No JSON é 'tipo', no Excel é {type_recp}
     "local": "{local}",
-    "obs": "{obs}"
+    "obs": "{obs}",
+    
+    # O valor total precisa vir do input do usuário na Etapa 3
+    "valor_total": "{valor_total}", 
+    
+    # O tipo da festa e a lista específica do tipo
+    "tipo": "{type_recepcao}"
 }
 
-# --- FUNÇÕES HELPER ---
+# --- 3. FUNÇÕES HELPER ---
 
 def buscar_dados_por_caminho(dados_completos, caminho_string):
-    """Navega no JSON usando strings com ponto (Ex: Salgados.quentes)"""
+    """Navega no JSON (ex: Salgados.quentes)"""
     chaves = caminho_string.split(".")
     conteudo_atual = dados_completos.get('cardapio', {})
     
+    # Se a chave for Mão de Obra, busca fora do cardápio se necessário, 
+    # mas assumiremos que você vai colocar dentro do cardápio no JSON.
     try:
         for chave in chaves:
             if isinstance(conteudo_atual, dict):
@@ -44,130 +54,163 @@ def buscar_dados_por_caminho(dados_completos, caminho_string):
     except:
         return []
 
+def substituir_tag_simples(ws, tag, valor):
+    """Substitui texto em qualquer lugar da planilha (busca parcial)"""
+    valor_str = str(valor)
+    for row in ws.iter_rows():
+        for cell in row:
+            if cell.value and isinstance(cell.value, str):
+                if tag in cell.value:
+                    cell.value = cell.value.replace(tag, valor_str)
+
 def expandir_lista_no_excel(ws, tag_excel, lista_dados):
-    """
-    Localiza uma tag, substitui pelo 1º item e insere linhas para o restante.
-    Se a lista for vazia, deleta a linha da tag E a linha anterior (Título).
-    """
+    """Expande linhas para listas ou deleta se vazio"""
     linha_tag = -1
     coluna_tag = -1
     
-    # 1. Procura a tag na planilha
+    # Localiza a tag
     for row in ws.iter_rows():
         for cell in row:
-            if cell.value == tag_excel:
+            if cell.value == tag_excel: # Para listas, mantemos busca exata na célula da tag
                 linha_tag = cell.row
                 coluna_tag = cell.column
                 break
         if linha_tag != -1: break
     
-    if linha_tag == -1:
-        return False # Tag não encontrada
+    if linha_tag == -1: return False
     
-    # 2. Lógica de Preenchimento ou Deleção
+    # Lógica de Escrita
     if not lista_dados:
-        # Se lista vazia: Deleta a linha da Tag e a linha SUPERIOR (Título)
-        # Ex: Deleta "SOBREMESA" e "{list_dessert}"
-        print(f"Deletando seção vazia para tag: {tag_excel}")
-        ws.delete_rows(linha_tag - 1, amount=2)
+        try:
+            # Deleta a linha da tag E a linha de cima (Título)
+            ws.delete_rows(linha_tag - 1, amount=2)
+        except:
+            pass
     else:
-        # Se tem dados: Expande
         qtd_itens = len(lista_dados)
-        ws.cell(row=linha_tag, column=coluna_tag).value = lista_dados[0] # 1º item sobrescreve tag
+        ws.cell(row=linha_tag, column=coluna_tag).value = lista_dados[0]
         
         if qtd_itens > 1:
             ws.insert_rows(linha_tag + 1, amount=qtd_itens - 1)
             for i in range(1, qtd_itens):
-                # Escreve os itens seguintes nas linhas criadas
-                celula = ws.cell(row=linha_tag + i, column=coluna_tag)
-                celula.value = lista_dados[i]
-                # Aqui você poderia copiar o style da celula original se quisesse refinar
+                ws.cell(row=linha_tag + i, column=coluna_tag).value = lista_dados[i]
     return True
 
-# --- MOTOR PRINCIPAL ---
+# --- 4. MOTOR PRINCIPAL ---
 
 def gerar_excel(dados_json):
-    # 1. Setup
     pasta_data = "data"
     arquivo_template = os.path.join(pasta_data, "template_orcamento.xlsx")
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    cliente_safe = str(dados_json['metadados']['cliente']).replace(' ', '_')
-    nome_saida = f"Orcamento_{cliente_safe}_{timestamp}.xlsx"
+    nome_cliente = str(dados_json['metadados']['cliente'] or "SemNome")
+    nome_saida = f"Orcamento_{nome_cliente.replace(' ', '_')}_{timestamp}.xlsx"
     caminho_saida = os.path.join("output", nome_saida)
 
-    if not os.path.exists("output"):
-        os.makedirs("output")
-        
+    if not os.path.exists("output"): os.makedirs("output")
     try:
         shutil.copy(arquivo_template, caminho_saida)
     except FileNotFoundError:
-        return {"sucesso": False, "erro": "Template não encontrado em data/template_orcamento.xlsx"}
+        return {"sucesso": False, "erro": "Template não encontrado!"}
 
     wb = openpyxl.load_workbook(caminho_saida)
     ws = wb.active
 
-    # --- FASE 1: METADADOS (Cabeçalho) ---
-    for row in ws.iter_rows():
-        for cell in row:
-            if isinstance(cell.value, str):
-                for chave_pacote, tag_excel in TAGS_SIMPLES.items():
-                    if tag_excel in cell.value:
-                        # Busca no pacote 'metadados' ou 'obs'
-                        if chave_pacote == "obs":
-                            valor = dados_json.get("obs", "")
-                        else:
-                            valor = dados_json['metadados'].get(chave_pacote, "")
-                            
-                        cell.value = cell.value.replace(tag_excel, str(valor))
+    # --- FASE 1: METADADOS E VALORES (Substituição Flexível) ---
+    # Aqui resolvemos o problema do {valor_total} e {type_recepcao}
+    for chave, valor in dados_json['metadados'].items():
+        if chave in TAGS_SIMPLES:
+            tag = TAGS_SIMPLES[chave]
+            substituir_tag_simples(ws, tag, valor)
+            
+    # Obs é separado
+    substituir_tag_simples(ws, "{obs}", dados_json.get("obs", ""))
 
-    # --- FASE 2: LISTAS PADRÃO (Salgados, Bebidas, etc) ---
+    # --- FASE 2: LISTAS FIXAS ---
+    # Resolvemos Mão de Obra, Sobremesa, Salgados
     for caminho_json, tag_excel in TAGS_FIXAS.items():
         lista = buscar_dados_por_caminho(dados_json, caminho_json)
         expandir_lista_no_excel(ws, tag_excel, lista)
 
-    # --- FASE 3: LÓGICA ESPECIAL DO JANTAR (Tag Dinâmica) ---
-    # Captura o que foi selecionado em "Prato Principal"
-    dados_jantar = dados_json['cardapio'].get('Prato Principal', {})
+    # --- FASE 3: LISTA ESPECIAL (TIPO DE RECEPÇÃO) ---
+    # Se a festa for "Boteco Mineiro", precisamos preencher a lista específica
+    # Assumindo que no JSON existe uma chave igual ao nome do tipo da festa
+    tipo_festa = dados_json['metadados'].get('tipo') # Ex: "Boteco Mineiro"
+    tag_lista_tipo = "{list_type_recp}"
     
-    # Flags para encontrar as tags especiais do Jantar
-    tag_titulo_jantar = "{1_opcao}"
-    tag_lista_jantar = "{list_1_op}"
+    # Busca dinâmica: Tenta achar "Boteco Mineiro" no cardápio
+    lista_especifica = dados_json['cardapio'].get(tipo_festa, [])
     
-    # Verifica se há items selecionados no Jantar
-    tem_jantar = False
-    nome_prato_escolhido = ""
-    lista_prato_escolhido = []
+    # Se não achou com o nome exato, tenta mapeamentos comuns ou deixa vazio
+    if not lista_especifica and tipo_festa == "Infantil":
+         lista_especifica = dados_json['cardapio'].get("Buffet Infantil", [])
 
-    if dados_jantar and isinstance(dados_jantar, dict):
-        # Varre as chaves (Massa, Chef, etc) para ver qual tem itens
-        for categoria, itens in dados_jantar.items():
-            if itens and len(itens) > 0:
-                nome_prato_escolhido = categoria # Ex: "Massa"
-                lista_prato_escolhido = itens    # Ex: ["Penne", "Molho"]
-                tem_jantar = True
-                break # Pega apenas a primeira categoria preenchida (Regra de Negócio: 1 Opção)
+    expandir_lista_no_excel(ws, tag_lista_tipo, lista_especifica)
 
-    # APLICAÇÃO NO EXCEL
-    if tem_jantar:
-        # 1. Substitui o TÍTULO {1_opcao} pelo nome do prato (Ex: "MASSA")
-        for row in ws.iter_rows():
-            for cell in row:
-                if cell.value == tag_titulo_jantar:
-                    cell.value = nome_prato_escolhido.upper() # Caixa alta
-                    break
-        
-        # 2. Expande a LISTA na tag {list_1_op}
-        expandir_lista_no_excel(ws, tag_lista_jantar, lista_prato_escolhido)
-        
+
+    # --- FASE 4: PRATO PRINCIPAL (A CORREÇÃO DO TÍTULO) ---
+    dados_prato = dados_json['cardapio'].get('Prato Principal', {})
+    categorias = []
+    if isinstance(dados_prato, dict):
+        for k, v in dados_prato.items():
+            if v: categorias.append((k, v)) # (Nome, Lista)
+
+    # Slot 1
+    tag_titulo_1 = "{1_opcao}"
+    tag_lista_1 = "{list_1_op}"
+    
+    if len(categorias) > 0:
+        nome_prato, lista_prato = categorias[0]
+        # AQUI ESTÁ A CORREÇÃO: Usamos a função substituir_tag_simples
+        substituir_tag_simples(ws, tag_titulo_1, nome_prato.upper())
+        expandir_lista_no_excel(ws, tag_lista_1, lista_prato)
     else:
-        # Se não tem jantar, deleta as linhas do Jantar
-        # Usamos expandir com lista vazia para acionar o delete_rows interno
-        expandir_lista_no_excel(ws, tag_lista_jantar, [])
-        
-        # Nota: O 'expandir' acima deleta a tag {list_1_op} e a linha acima dela.
-        # Se a tag {1_opcao} estiver DUAS linhas acima, talvez precise deletar manualmente aqui.
-        # Mas pelo padrão (Titulo na linha X, Lista na X+1), o comando acima resolve.
+        expandir_lista_no_excel(ws, tag_lista_1, []) # Deleta
+
+    # Slot 2 (Se existir no futuro)
+    if len(categorias) > 1:
+        nome_prato_2, lista_prato_2 = categorias[1]
+        substituir_tag_simples(ws, "{2_opcao}", nome_prato_2.upper())
+        expandir_lista_no_excel(ws, "{list_2_op}", lista_prato_2)
 
     wb.save(caminho_saida)
     return {"sucesso": True, "caminho": caminho_saida}
+```
+
+### 📋 O que você precisa fazer agora (Pré-requisitos)
+
+Para que esse código funcione e preencha as lacunas que você mencionou (Mão de Obra, Sobremesa no menu, Valor Total), precisamos atualizar rapidamente o **JSON** e o **App**.
+
+**1. Atualize o `cardapio.json` (Adicione Mão de Obra e Ajuste Chaves):**
+Você precisa adicionar a chave `"Mão de Obra"` no JSON para o código encontrá-la.
+
+```json
+{
+    "salgados": { ... },
+    "Mão de Obra": [
+        "Cozinheira",
+        "Copeira",
+        "Garçom",
+        "Recepcionista"
+    ],
+    ... (resto do arquivo)
+}
+```
+
+**2. Ajuste Crítico no `app.py` (Para Sobremesa e Valor):**
+
+Vou te passar apenas o trecho que você deve adicionar no **Passo 3** do seu `app.py` para capturar o valor total, já que ele não existia.
+
+No bloco `elif st.session_state.step == 3:`, adicione isso antes do botão de gerar:
+
+```python
+# No passo 3 do app.py
+st.markdown("### 💰 Fechamento")
+valor_total = st.text_input("Valor Total do Orçamento (R$)", placeholder="Ex: 5.000,00")
+
+# ... (botão gerar)
+# DENTRO do dicionário pacote_dados, adicione:
+"metadados": {
+    # ... outros campos ...
+    "valor_total": valor_total # <--- Isso vai preencher a tag {valor_total}
+},
