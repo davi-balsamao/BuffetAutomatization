@@ -1,0 +1,106 @@
+{
+    "salgados": {
+        "quentes": [
+             "Bolinho de aipim ( Carne Sêca - Bacalhau - Tradicional )",
+             "Bombom de calabresa e pimenta biquinho",
+             "Bolinho de moranga c/ carne sêca",
+             "Bombom de milho c/ mussarela",
+             "Bombom marguerita",
+             "Cajuzinho de carne",
+             "Camaféu de bacalhau",
+             "Cazulo de queijo canastra / Calda de goiaba",
+             "Coração de alho poro c/ catupiry",
+             "Coxinha de frango c/ catupiry",
+             "Coxinha de rabada",
+             "Coxinha siciliana c/ calda de limão",
+             "Dadinhos de tapioca c/ queijo coalho c/ chilli de pimenta e melaço",
+             "Espetadas de frango / Molho de Maracujá",
+             "Espetinho suino c/ bacon / Molho Barbecue",
+             "Ouriço de tomate sêco c/ provolone",
+             "Pastel Mineiro de Carne",
+             "Pastel Mineiro de Queijo",
+             "Quibe no palito / Molho de Damasco c/ Hortelã",
+             "Rissoles de palmito Ou milho"
+        ],
+        "frios": [
+            "Canapé de alho poro c/ kani e geleia de damasco",
+            "Canapé Italiano",
+            "Canapés de damasco c/ morango",
+            "Cartucho de frango defumado com ricota e ervas",
+            "Cestinha de frango",
+            "Rollon de Frango/ Chantney de Manga"
+        ],
+        "assados": [
+            "Batatas coradas c/ creme de queijo e bacon bits",
+            "Empadinha de frango ou queijo ou mista",
+            "Corbelli de frutas vermelhas",
+            "Folhados de calabresa Ou palmito Ou alho Poro ou lombinho c/ abacaxi",
+            "Folhados de figo com bacon",
+            "Mini brusquetas",
+            "Mini Quiche - alho Poro c/bacon ou com geleia de damasco e castanha",
+            "Mini Tortinha - Quatro queijos c/ damasco e goiabada"
+        ],
+        "petit_gourmet": [
+            "Caldinho verde ou de feijão",
+            "Conchinha de siri gratinada",
+            "Escondidinho de carne  ( Pure Tradicional - Moranga ou Aipim )",
+            "Mini Parmegiana de frango",
+            "Polentinha cremosa com ragu de calabresa ou de cogumelos",
+            "Fricasse de frango"
+        ]
+    },
+    "Buffet Infantil": [
+        "Mini hamburguer",
+        "Mini hot dog",
+        "Mini Pizza",
+        "Pipoca doce e salgada",
+        "Batata chips",
+        "Balas - pirulitos - bis - chicletes"
+
+    ],
+    "Prato Principal": {
+        "Massa": [
+            "Bolonhesa",
+            "Escalopinho de filé",
+            "Frango cremoso",
+            "Bechamel",
+            "Bechamel com alho poro ou tomate sêco",
+            "Pomodoro com manjericão",
+            "Acompanhamento - Queijo parmesão"
+        ],
+        "Cheff ao vivo - tipo spoletto": [
+            "Massa: Penne e espaguete",
+            "Guarnições: Frango - Bacon - presunto - milho - ervilha - azeitona - palmito - tomate sêco",
+            "Molhos: Bechamel e Pomodoro",
+            "Acompanhamento: Queijo parmesão"
+        ],
+        "acompanhamentos": [
+            "Arroz Branco",
+            "Arroz à Grega",
+            "Salada Tropical"
+        ]
+    },
+    "bebidas": [
+        "Refrigerante  -  (Coca Cola - Guaraná - Diet)",
+        "Suco Natural de Laranja",
+        "Água Mineral",
+        "Cerveja",
+        "Bebida Destilada"
+    ],
+    "mao_de_obra": [
+        "Coordenadora",
+        "Garçons e Garçonetes",
+        "Equipe de Copa / Cozinha"
+    ],
+    "clausulas_contrato": [
+        "Primeira - O preço acertado para a Prestação dos Serviços acima descritos será de :",
+        "Segunda - Condições de pagamento:O pagamento de todo o evento será feito da seguinte forma: R$ no ato da assinatura deste contrato.",
+        "Terceira - As partes concordam que os danos/ perdas causados a quaisquer dos objetos locados, serão restituídos pela CONTRATANTE em favor da CONTRATADA, nas mesmas condições em que o receber, tão logo o evento seja realizado.",
+        "Quarta - Não estão inclusos no valor acima horas extras de serviços de garçons,cozinheiras e copeiros ( após 06:00hrs de Serviço ).Será cobrado após este horário o valor de R$ 180,00 para a coordenadora e R$ 60,00 para cada funcionário do buffet que continuar trabalhando a titulo de hora extra.",
+        "Quinta - Lanche: Não é de responsabilidade do buffet,o fornecimento de lanche para Dj,banda,cerimonial, decoradores e demais contratados pelo cliente. Obs: Sujeito a combinar.",
+        "Sexta - O cardápio foi elaborado de acordo com o número de convidados determinado pela contratante,e de acordo com as solicitações desta.Portanto,o não comparecimento do número de convidados, não  implicará nas condições e preço deste contrato.Serão cobrados dos Contratantes o número de pessoas excedentes a este acordo,ao preço cobrado e proporcional ao número excedido.Tolerância de 07 convidados excedidos.",
+        "Sétima - Crianças até 08 anos não serão computadas para fins de número total de convidados.",
+        "Oitava - Devolução de salgados,doces,bolos e demais itens devidamente embalados,em caso de não utilizados.",
+        "Nona - Salvo o caso de rescisão, fica estabelecido que a parte desistente do presente contrato, pagará à parte prejudicada multa equivalente a 30% (trinta por cento) sobre o valor do contrato"
+    ]
+}
