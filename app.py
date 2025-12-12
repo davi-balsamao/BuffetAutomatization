@@ -102,7 +102,7 @@ if st.session_state.step == 1:
             st.session_state.local = st.text_input("Local da Festa", value=st.session_state.local)
             st.session_state.qtd_convidados = st.number_input("Qtd. Convidados", min_value=10, step=5, value=st.session_state.qtd_convidados)
         
-        opcoes = ["Tradicional", "Infantil", "Boteco Mineiro", "Coquetel"]
+        opcoes = ["Tradicional", "Infantil", "Cantinho Mineiro", "Casamento", "Aniversário 15 anos"]
         idx = opcoes.index(st.session_state.tipo_festa) if st.session_state.tipo_festa in opcoes else 0
         st.session_state.tipo_festa = st.selectbox("Tipo de Recepção", opcoes, index=idx)
 
@@ -124,8 +124,8 @@ elif st.session_state.step == 2:
     escolhas = {}
     
     with st.expander("🥐 Salgados", expanded=True):
-        if "salgados" in dados:
-            escolhas["Salgados"] = renderizar_secao("Salgados", dados["salgados"], "main")
+        if "Salgados" in dados:
+            escolhas["Salgados"] = renderizar_secao("Salgados", dados["Salgados"], "main")
             
     with st.expander("🍝 Prato Principal"):
         if "Prato Principal" in dados:
@@ -134,11 +134,11 @@ elif st.session_state.step == 2:
     with st.expander("🍹 Bebidas e Doces"):
         c1, c2 = st.columns(2)
         with c1:
-            if "bebidas" in dados:
-                escolhas["Bebidas"] = renderizar_secao("Bebidas", dados["bebidas"], "main")
+            if "Bebidas" in dados:
+                escolhas["Bebidas"] = renderizar_secao("Bebidas", dados["Bebidas"], "main")
         with c2:
-            if "sobremesa" in dados:
-                escolhas["Sobremesa"] = renderizar_secao("Sobremesa", dados["sobremesa"], "main")
+            if "Sobremesa" in dados:
+                escolhas["Sobremesa"] = renderizar_secao("Sobremesa", dados["Sobremesa"], "main")
 
     # NOVA SEÇÃO: MÃO DE OBRA
     with st.expander("👷 Equipe / Mão de Obra"):
@@ -149,6 +149,11 @@ elif st.session_state.step == 2:
         with st.expander("🧸 Buffet Infantil", expanded=True):
             if "Buffet Infantil" in dados:
                 escolhas["Buffet Infantil"] = renderizar_secao("Buffet Infantil", dados["Buffet Infantil"], "main")
+
+    if st.session_state.tipo_festa == "Cantinho Mineiro":
+        with st.expander("Cantinho Mineiro", expanded=True):
+            if "Cantinho Mineiro" in dados:
+                escolhas["Cantinho Mineiro"] = renderizar_secao("Cantinho Mineiro", dados["Cantinho Mineiro"], "main")
 
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button("Próximo ➡️", type="primary"):

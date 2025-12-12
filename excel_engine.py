@@ -20,7 +20,6 @@ TAGS_SIMPLES = {
     "data": "{date}",
     "convidados": "{num_guest}", 
     "local": "{local}",
-    "obs": "{obs}",
     "valor_total": "{valor_total}", # Tag do Valor
     "tipo": "{type_recepcao}" # Tag do Tipo (Cabeçalho)
 }
@@ -64,7 +63,7 @@ def expandir_lista_no_excel(ws, tag_excel, lista_dados):
     # 2. Preenche ou Deleta
     if not lista_dados:
         try:
-            ws.delete_rows(linha_tag - 1, amount=2)
+            ws.delete_rows(linha_tag - 1, amount=3)
         except: pass
     else:
         qtd = len(lista_dados)
@@ -130,6 +129,9 @@ def gerar_excel(dados_json):
         nome_2, lista_2 = cats[1]
         substituir_tag_simples(ws, "{2_opcao}", nome_2.upper())
         expandir_lista_no_excel(ws, "{list_2_op}", lista_2)
+    else:
+        substituir_tag_simples(ws, "{2_opcao}", "")
+        expandir_lista_no_excel(ws, "{list_2_op}", [])
 
     wb.save(caminho_saida)
     return {"sucesso": True, "caminho": caminho_saida}
