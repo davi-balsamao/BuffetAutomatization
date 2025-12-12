@@ -31,6 +31,7 @@ def inicializar_estado():
     # Passo 3
     if 'obs' not in st.session_state: st.session_state.obs = ""
     if 'valor_total' not in st.session_state: st.session_state.valor_total = ""
+    if 'total_salgados' not in st.session_state: st.session_state.total_salgados = 0
 
 inicializar_estado()
 
@@ -167,9 +168,24 @@ elif st.session_state.step == 3:
     
     st.info(f"Cliente: **{st.session_state.cliente}** | Data: **{st.session_state.data_evento.strftime('%d/%m/%Y')}**")
     
+
+    st.write("### 💰 Valores e Quantitativos") 
+    
+    col_val1, col_val2 = st.columns(2)
+    with col_val1:
+        st.session_state.valor_total = st.text_input("Valor Total (R$)", value=st.session_state.valor_total)
+    with col_val2:
+        # Novo campo numérico
+        st.session_state.total_salgados = st.number_input("Total de Salgados (un)", min_value=0, step=10, value=st.session_state.total_salgados)
+    
+
     # Campo Novo: Valor Total
-    st.write("### 💰 Valores")
-    st.session_state.valor_total = st.text_input("Valor Total do Orçamento (R$)", value=st.session_state.valor_total, placeholder="Ex: 5.500,00")
+    # st.write("### 💰 Valores")
+    # st.session_state.valor_total = st.text_input("Valor Total do Orçamento (R$)", value=st.session_state.valor_total, placeholder="Ex: 5.500,00")
+
+    # Campo: Total de Salgados
+    # st.write("### Total de Salgados")
+    # st.session_state.total_salg = st.text_input("Quantidade total de salgados", value=st.session_state.total_salg, placeholder="Ex: 600")
     
     st.write("### 📝 Observações")
     st.session_state.obs = st.text_area("Cláusulas Extras / Obs", value=st.session_state.obs)
@@ -188,7 +204,8 @@ elif st.session_state.step == 3:
                     "convidados": st.session_state.qtd_convidados,
                     "tipo": st.session_state.tipo_festa,
                     "local": st.session_state.local,
-                    "valor_total": st.session_state.valor_total # Passando o valor
+                    "valor_total": st.session_state.valor_total, # Passando o valor
+                    "qtd_salgados": st.session_state.total_salgados
                 },
                 "cardapio": st.session_state.cardapio_selecionado,
                 "obs": st.session_state.obs

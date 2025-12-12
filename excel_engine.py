@@ -21,6 +21,7 @@ TAGS_SIMPLES = {
     "convidados": "{num_guest}", 
     "local": "{local}",
     "valor_total": "{valor_total}", # Tag do Valor
+    "qtd_salgados": "{total_salg}",
     "tipo": "{type_recepcao}" # Tag do Tipo (Cabeçalho)
 }
 
