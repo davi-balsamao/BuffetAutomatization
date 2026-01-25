@@ -31,22 +31,6 @@ Projeto construído com foco em simplicidade de implantação e eficiência loca
 * Inclusão automática das Condições Gerais (9 cláusulas contratuais).
 * Formatação pronta para impressão e assinatura.
 
-## 📂 Estrutura do Projeto
-A organização segue o padrão MVC simplificado para Data Apps:
-
-BuffetAutomatization/
-├── .venv/                  # Ambiente Virtual (Isolamento)
-├── assets/                 # Imagens e Logos
-├── data/
-│   └── cardapio.json       # "Banco de dados" dos pratos e cláusulas
-├── templates/
-│   ├── template_orcamento.xlsx  # Modelo Excel vazio (Design)
-│   └── template_contrato.xlsx   # Modelo Contrato vazio
-├── output/                 # Pasta onde os arquivos gerados são salvos
-├── app.py                  # Ponto de entrada da aplicação (Main)
-├── requirements.txt        # Dependências do projeto
-└── README.md               # Documentação
-
 ## ⚙️ Instalação e Execução (Local)
 
 ### Pré-requisitos
